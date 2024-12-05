@@ -11,14 +11,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    public JwtAuthConvertor jwtAuthConvertor;
+    private final JwtAuthConvertor jwtAuthConvertor;
+
+    public SecurityConfig(JwtAuthConvertor jwtAuthConvertor) {
+        this.jwtAuthConvertor = jwtAuthConvertor;
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -27,8 +31,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers(HttpMethod.POST, "/user-service/api/v1/users/signup")
-                                .permitAll()
+                                .requestMatchers(HttpMethod.POST, "/user-service/api/v1/users/signup").permitAll()
+                                .requestMatchers(HttpMethod.POST,"/user-service/api/v1/users/login").permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )

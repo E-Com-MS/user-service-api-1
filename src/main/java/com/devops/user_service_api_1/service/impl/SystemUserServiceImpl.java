@@ -3,17 +3,25 @@ package com.devops.user_service_api_1.service.impl;
 import com.devops.user_service_api_1.dto.request.RequestSystemUserDto;
 import com.devops.user_service_api_1.entity.SystemUser;
 import com.devops.user_service_api_1.exceptions.DuplicateEntryException;
+import com.devops.user_service_api_1.exceptions.EntryNotFoundException;
 import com.devops.user_service_api_1.repo.SystemUserRepo;
 import com.devops.user_service_api_1.service.SystemUserService;
 import com.devops.user_service_api_1.util.KeycloakSecurityUtil;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
+import org.keycloak.OAuth2Constants;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.CredentialRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -110,7 +118,28 @@ public class SystemUserServiceImpl implements SystemUserService {
     }
 
     @Override
-    public void login(String username, String password) {
+    public Object login(String email, String password) {
+
+        System.out.println(email);
+        System.out.println(password);
+
+        Optional<SystemUser> selectedUser = systemUserRepo.findByEmail(email);
+
+        if(selectedUser.isEmpty()){
+            throw new EntryNotFoundException("user already not exist");
+        }
+
+        LinkedMultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+        requestBody.add("client_id", clientId);
+        requestBody.add("grant_type", OAuth2Constants.PASSWORD);
+        requestBody.add("username", email);
+        requestBody.add("client_secret", secret);
+        requestBody.add("password",password);
+        HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Object> response = restTemplate.postForEntity(keyCloakApiUrl, requestBody, Object.class);
+        return response.getBody();
 
     }
 }

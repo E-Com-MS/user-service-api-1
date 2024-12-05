@@ -1,14 +1,16 @@
 package com.devops.user_service_api_1.util;
 
+import jakarta.ws.rs.core.Form;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.admin.client.KeycloakBuilder;
+import org.keycloak.representations.AccessTokenResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KeycloakSecurityUtil {
 
-    Keycloak keycloak;
+    private Keycloak keycloak;
 
     @Value("${keycloak.config.server-url}")
     private String serverUrl;
